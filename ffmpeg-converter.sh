@@ -53,27 +53,27 @@ if [ -n "$directory" ]; then
 fi
 
 function wav-flac() {
-  find . -iname "*.wav" -type f | parallel -I% --max-args 1 \
-    "ffmpeg -i % -c:a flac -y {.}.flac; \
+  find . -iname "*.wav" -type f | parallel --progress -I% --max-args 1 \
+    "ffmpeg -hide_banner -loglevel warning -i % -c:a flac -y {.}.flac; \
     touch -r % {.}.flac; \
     if [ '$rm_flag' = true ]; then rm -vf %; fi; \
-    echo 'Conversion of % completed.'"
+    echo --- Conversion of % completed --- "
 }
 
 function wav-opus() {
-  find . -iname "*.wav" -type f | parallel -I% --max-args 1 \
-    "ffmpeg -i % -c:a libopus -b:a 192K -vbr on -map_metadata 0 -compression_level 10 -y {.}.opus; \
-    touch -r % {.}.opus; \
-    if [ '$rm_flag' = true ]; then rm -vf %; fi; \
-    echo 'Conversion of % completed.'"
-}
-
-function flac-opus() {
-  find . -iname "*.flac" -type f | parallel -I% --max-args 1 \
+  find . -iname "*.wav" -type f | parallel --progress -I% --max-args 1 \
     "ffmpeg -hide_banner -loglevel warning -i % -c:a libopus -b:a 192K -vbr on -map_metadata 0 -compression_level 10 -y {.}.opus; \
     touch -r % {.}.opus; \
     if [ '$rm_flag' = true ]; then rm -vf %; fi; \
-    echo 'Conversion of % completed.'"
+    echo --- Conversion of % completed --- "
+}
+
+function flac-opus() {
+  find . -iname "*.flac" -type f | parallel --progress -I% --max-args 1 \
+    "ffmpeg -hide_banner -loglevel warning -i % -c:a libopus -b:a 192K -vbr on -map_metadata 0 -compression_level 10 -y {.}.opus; \
+    touch -r % {.}.opus; \
+    if [ '$rm_flag' = true ]; then rm -vf %; fi; \
+    echo --- Conversion of % completed --- "
 }
 
 if [[ $(basename "$0") == ffmpeg-wav-flac ]]; then
