@@ -17,7 +17,7 @@ rm_flag=false
 
 # 解析命令行选项
 while getopts "dh-:" opt; do
-  case $opt in
+  case "${opt}" in
   d)
     rm_flag=true
     ;;
