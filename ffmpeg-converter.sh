@@ -13,13 +13,14 @@ show_help() {
 }
 
 # 初始化变量
-rm_flag=false
+RM_FLAG=false
+OPUS_BITRATE=160
 
 # 解析命令行选项
 while getopts "dh-:" opt; do
   case "${opt}" in
   d)
-    rm_flag=true
+    RM_FLAG=true
     ;;
   h)
     show_help
@@ -43,7 +44,6 @@ while getopts "dh-:" opt; do
     ;;
   esac
 done
-
 # 移除已处理的选项参数
 shift $((OPTIND - 1))
 
@@ -52,28 +52,40 @@ if [ -n "$directory" ]; then
   cd directory || exit
 fi
 
+export RM_FLAG
+export OPUS_BITRATE
+
+convert_to_opus() {
+  input_file=$1
+  output_file="${input_file%.*}.opus"
+  # -c:v copy is REQUIRED as FFmpeg will convert the album cover, cause extremely large files
+  ffmpeg -hide_banner -loglevel warning -i "$input_file" -c:v copy -f flac - |
+    opusenc --quiet --bitrate "$OPUS_BITRATE" - "$output_file"
+  if [ $RM_FLAG = true ]; then rm -vf "$input_file"; fi
+  echo --- Conversion of "$input_file" completed ---
+}
+
+convert_to_flac() {
+  input_file=$1
+  output_file="${input_file%.*}.flac"
+  ffmpeg -hide_banner -loglevel warning -i "$input_file" -c:a flac -y "$output_file"
+  if [ $RM_FLAG = true ]; then rm -vf "$input_file"; fi
+  echo --- Conversion of "$input_file" completed ---
+}
+
+export -f convert_to_opus
+export -f convert_to_flac
+
 function wav-flac() {
-  find . -iname "*.wav" -type f | parallel --progress -I% --max-args 1 \
-    "ffmpeg -hide_banner -loglevel warning -i % -c:a flac -y {.}.flac; \
-    touch -r % {.}.flac; \
-    if [ '$rm_flag' = true ]; then rm -vf %; fi; \
-    echo --- Conversion of % completed --- "
+  find . -iname "*.wav" -type f | parallel --progress convert_to_flac
 }
 
 function wav-opus() {
-  find . -iname "*.wav" -type f | parallel --progress -I% --max-args 1 \
-    "ffmpeg -hide_banner -loglevel warning -i % -c:a libopus -b:a 192K -vbr on -map_metadata 0 -compression_level 10 -y {.}.opus; \
-    touch -r % {.}.opus; \
-    if [ '$rm_flag' = true ]; then rm -vf %; fi; \
-    echo --- Conversion of % completed --- "
+  find . -iname "*.wav" -type f | parallel --progress convert_to_opus
 }
 
 function flac-opus() {
-  find . -iname "*.flac" -type f | parallel --progress -I% --max-args 1 \
-    "ffmpeg -hide_banner -loglevel warning -i % -c:a libopus -b:a 192K -vbr on -map_metadata 0 -compression_level 10 -y {.}.opus; \
-    touch -r % {.}.opus; \
-    if [ '$rm_flag' = true ]; then rm -vf %; fi; \
-    echo --- Conversion of % completed --- "
+  find . -iname "*.flac" -type f | parallel --progress convert_to_opus
 }
 
 if [[ $(basename "$0") == ffmpeg-wav-flac ]]; then
