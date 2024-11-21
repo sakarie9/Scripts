@@ -5,10 +5,15 @@
 # Kill active if hyprctl fails
 active_window_class=$(swaymsg -t get_tree | jq -r '.. | select(.type?) | select(.focused==true) | .app_id')
 
-if [ "$active_window_class" = "steam" ]; then
+case "$active_window_class" in
+"steam")
   xdotool getactivewindow windowunmap
-elif [ "$active_window_class" = "Waydroid" ]; then
+  ;;
+"Waydroid")
   sudo systemctl stop waydroid-container.service
-else
+  ;;
+"popup_term") ;;
+*)
   swaymsg kill
-fi
+  ;;
+esac
