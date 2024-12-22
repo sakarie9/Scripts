@@ -29,6 +29,7 @@ elif [ -d "$first_item" ]; then
 fi
 
 # 压缩到 .7z 格式
-7z -m0=flzma2 a "$output" "${paths[@]}"
+# 7z -m0=flzma2 a "$output" "${paths[@]}"
+7z a "$output" "${paths[@]}"
 
 read -p "压缩完成，按回车键继续..."
