@@ -2,22 +2,44 @@
 
 ENABLED=󰎈
 DISABLED=󰎊
-bypass=$(easyeffects -b 3)
+last_preset=$(gsettings get com.github.wwmm.easyeffects last-loaded-output-preset | tr -d "'")
+DEFAULT_PRESET=Default
 
-if [[ $1 == "switch" ]]; then
-  if [[ $bypass -eq 0 ]]; then
-    easyeffects -b 1
-    notify-send "AutoGain Disabled"
-    # echo $DISABLED
+ee_enable() {
+  easyeffects -l LoudnessEqualizer
+  easyeffects -b 2
+  notify-send "Easyeffects Enabled"
+  # Trigger waybar update immediately
+  pkill -SIGRTMIN+9 waybar
+}
+
+ee_disable() {
+  easyeffects -l Default
+  easyeffects -b 1
+  notify-send "Easyeffects Disabled"
+  # Trigger waybar update immediately
+  pkill -SIGRTMIN+9 waybar
+}
+
+case "$1" in
+"toggle" | "switch")
+  if [ "$last_preset" == $DEFAULT_PRESET ]; then
+    ee_enable
   else
-    easyeffects -b 2
-    notify-send "AutoGain Enabled"
-    # echo $ENABLED
+    ee_disable
   fi
-else
-  if [[ $bypass -eq 0 ]]; then
+  ;;
+"enable")
+  ee_enable
+  ;;
+"disable")
+  ee_disable
+  ;;
+*)
+  if [ "$last_preset" != $DEFAULT_PRESET ]; then
     echo $ENABLED
   else
     echo $DISABLED
   fi
-fi
+  ;;
+esac
