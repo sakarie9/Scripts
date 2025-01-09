@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export SHELL=/bin/fish
+
 session_name="paru"
 cmd="paru -Syu; pkill -SIGRTMIN+8 waybar"
 
@@ -16,5 +18,8 @@ if tmux has-session -t $session_name 2>/dev/null; then
   fi
 else
   # 如果不存在，则新建session并运行命令
-  tmux new-session -s $session_name "${cmd}; zsh"
+  # tmux new-session -s $session_name "fish --command ${cmd}"
+  tmux new-session -s $session_name -d
+  tmux send-keys -t $session_name "$cmd" Enter
+  tmux attach-session -t $session_name
 fi

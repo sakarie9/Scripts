@@ -5,6 +5,7 @@ show_help() {
   echo ""
   echo "Options:"
   echo "  -d            Delete the original files after conversion."
+  echo "  -b            Bitrate of the output Opus files. Default is 128."
   echo "  -h, --help    Show this help message and exit."
   echo ""
   echo "Arguments:"
@@ -14,11 +15,14 @@ show_help() {
 
 # 初始化变量
 RM_FLAG=false
-OPUS_BITRATE=160
+OPUS_BITRATE=128
 
 # 解析命令行选项
-while getopts "dh-:" opt; do
+while getopts ":bdh-:" opt; do
   case "${opt}" in
+  b)
+    OPUS_BITRATE=${OPTARG}
+    ;;
   d)
     RM_FLAG=true
     ;;
@@ -88,11 +92,11 @@ function flac-opus() {
   find . -iname "*.flac" -type f | parallel --progress convert_to_opus
 }
 
-if [[ $(basename "$0") == ffmpeg-wav-flac ]]; then
+if [[ $(basename "$0") == conv-wav-flac ]]; then
   wav-flac
-elif [[ $(basename "$0") == ffmpeg-wav-opus ]]; then
+elif [[ $(basename "$0") == conv-wav-opus ]]; then
   wav-opus
-elif [[ $(basename "$0") == ffmpeg-flac-opus ]]; then
+elif [[ $(basename "$0") == conv-flac-opus ]]; then
   flac-opus
 else
   echo "Unknown function"
